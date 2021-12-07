@@ -25,3 +25,15 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     Resources.qrc
+INCLUDEPATH += /usr/local/include/opencv4
+LIBS += -L /usr/local/lib \
+-lopencv_core \
+-lopencv_highgui \
+-lopencv_imgproc \
+-lopencv_imgcodecs \
+-lopencv_video.4.5.3 \
+-lopencv_videoio.4.5.3 \
+-lopencv_videostab.4.5.3 \
+-lopencv_imgcodecs.4.5.3 \
+
+#unix|win32: LIBS += -lopencv_core.4.5.3

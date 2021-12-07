@@ -11,7 +11,13 @@
 #include<QtMath>
 #include<iostream>
 
+#include <opencv2/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include "opencv2/imgcodecs.hpp"
+
 using namespace std;
+using namespace cv;
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -47,6 +53,10 @@ private slots:
     }
 //    QImage gray2(QImage image);//灰度化2
 
+    //opencv函数
+    void show_histogram(Mat& img);
+    int getRGBHistogram();
+
 
     void on_pushButton_meanFilter_clicked();
 
@@ -71,6 +81,7 @@ private slots:
     void on_horizontalSlider_rotate_valueChanged(int value);
 
 private:
+
     Ui::MainWindow *ui;
     QString origin_path;//目前处理的图片的原图
     int explosure_value;
