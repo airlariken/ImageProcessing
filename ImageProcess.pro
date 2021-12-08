@@ -10,10 +10,13 @@ CONFIG += c++11
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    yolo.cpp
 
 HEADERS += \
-    mainwindow.h
+    Header.h \
+    mainwindow.h \
+    yolo.h
 
 FORMS += \
     mainwindow.ui
@@ -35,5 +38,9 @@ LIBS += -L /usr/local/lib \
 -lopencv_videoio.4.5.3 \
 -lopencv_videostab.4.5.3 \
 -lopencv_imgcodecs.4.5.3 \
+#-lopencv_dnn.4.5.3 \
+-lopencv_dnn \
+#-lopencv_dnn_superres.4.5.3 \
+#-lopencv_dnn_objdetect.4.5.3 \
 
 #unix|win32: LIBS += -lopencv_core.4.5.3

@@ -19,6 +19,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->horizontalSlider_saturation,SIGNAL(valueChanged(int)), ui->spinBox_saturation,SLOT(setValue(int)));
 
     getRGBHistogram();
+
+    Net_config yolo_nets[4] = {
+        {0.5, 0.5, 0.5, "yolov5s"},
+        {0.5, 0.5, 0.5,  "yolov5m"},
+        {0.5, 0.5, 0.5, "yolov5l"},
+        {0.5, 0.5, 0.5, "yolov5x"}
+    };
+
+
+    yolo_model = new YOLO(yolo_nets[0]);
 }
 
 MainWindow::~MainWindow()
@@ -762,3 +772,82 @@ void MainWindow::on_pushButton_gaussianBlur_clicked()
     ui->label_imgshow->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
 }
 
+
+void MainWindow::on_pushButton_objectDetection_clicked()
+{
+
+
+//    string imgpath = "/Users/chenziwei/摄影/2021.2.9微电影/IMG_6343.JPG";
+    Mat srcimg = imread(origin_path.toStdString());
+    yolo_model->detect(srcimg);
+
+    static const string kWinName = "Deep learning object detection in OpenCV";
+
+//    imwrite("/Users/chenziwei/Downloads/srcimg.jpg", srcimg);
+    imshow("nice", srcimg);
+
+
+
+
+
+
+}
+
+void MainWindow::on_pushButton_dilate_clicked()
+{
+    //从文件中读取成灰度图像
+
+       Mat img = imread(origin_path.toStdString(), IMREAD_GRAYSCALE);
+       if (img.empty())
+       {
+           fprintf(stderr, "Can not load image %s\n", origin_path.toStdString());
+//           return -1;
+           return;
+       }
+
+       //OpenCV方法
+       Mat dilated_cv;
+       dilate(img, dilated_cv, Mat());
+
+       //自定义方法
+       Mat dilated_my;
+       dilated_my.create(img.rows, img.cols, CV_8UC1);
+       for (int i = 0; i < img.rows; ++i)
+       {
+           for (int j = 0; j < img.cols; ++j)
+           {
+               //uchar minV = 255;
+               uchar maxV = 0;
+
+               //遍历周围最大像素值
+               for (int yi = i-1; yi <= i+1; yi++)
+               {
+                   for (int xi = j-1; xi <= j+1; xi++)
+                   {
+                       if (xi<0||xi>= img.cols|| yi<0 || yi >= img.rows)
+                       {
+                           continue;
+                       }
+                       //minV = (std::min<uchar>)(minV, img.at<uchar>(yi, xi));
+                       maxV = (std::max<uchar>)(maxV, img.at<uchar>(yi, xi));
+                   }
+               }
+               dilated_my.at<uchar>(i, j) = maxV;
+           }
+       }
+
+       //比较两者的结果
+       Mat c;
+       compare(dilated_cv, dilated_my, c, CMP_EQ);
+
+       //显示
+       imshow("原始", img);
+       waitKey(0);
+       imshow("膨胀_cv", dilated_cv);
+       waitKey(0);
+       imshow("膨胀_my", dilated_my);
+       waitKey(0);
+       imshow("比较结果", c);
+
+       waitKey();
+}

@@ -16,11 +16,11 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_5">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,5">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,5">
       <item>
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -48,6 +48,33 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton_toGray">
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>灰度图</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_dilate">
+            <property name="text">
+             <string>灰度膨胀</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_erode">
+            <property name="text">
+             <string>灰度腐蚀</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -67,19 +94,6 @@
           <string>Algo</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QPushButton" name="pushButton_toGray">
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>灰度图</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QPushButton" name="pushButton_meanFilter">
             <property name="maximumSize">
@@ -127,6 +141,20 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton_sharpen">
+            <property name="text">
+             <string>锐化</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_gaussianBlur">
+            <property name="text">
+             <string>高斯模糊</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="verticalSpacer_2">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -145,30 +173,17 @@
          <attribute name="title">
           <string>啊</string>
          </attribute>
-         <widget class="QPushButton" name="pushButton_sharpen">
+         <widget class="QPushButton" name="pushButton_objectDetection">
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>10</y>
+            <y>70</y>
             <width>112</width>
             <height>32</height>
            </rect>
           </property>
           <property name="text">
-           <string>锐化</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_gaussianBlur">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>40</y>
-            <width>112</width>
-            <height>32</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>高斯模糊</string>
+           <string> 目标识别</string>
           </property>
          </widget>
         </widget>

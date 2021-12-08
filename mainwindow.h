@@ -1,22 +1,23 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QFileDialog>
-#include <QImage>
-#include <QLabel>
-#include <string>
-#include <vector>
-#include <QMessageBox>
-#include<QtMath>
-#include<iostream>
+//#include <QMainWindow>
+//#include <QFileDialog>
+//#include <QImage>
+//#include <QLabel>
+//#include <string>
+//#include <vector>
+//#include <QMessageBox>
+//#include<QtMath>
+//#include<iostream>
 
-#include <opencv2/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include "opencv2/imgcodecs.hpp"
+//#include <opencv2/core.hpp>
+//#include <opencv2/highgui/highgui.hpp>
+//#include <opencv2/imgproc/imgproc.hpp>
+//#include "opencv2/imgcodecs.hpp"
 
-
+#include "Header.h"
+#include "yolo.h"
 #include <stdio.h>
 #include <stdlib.h>
 #define EPS 1e-7
@@ -93,8 +94,12 @@ private slots:
 
     void on_pushButton_gaussianBlur_clicked();
 
-private:
+    void on_pushButton_objectDetection_clicked();
 
+    void on_pushButton_dilate_clicked();
+
+private:
+    YOLO *yolo_model;
     Ui::MainWindow *ui;
     QString origin_path;//目前处理的图片的原图
     int explosure_value;
