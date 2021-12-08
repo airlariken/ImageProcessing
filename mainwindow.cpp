@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->spinBox_saturation,SIGNAL(valueChanged(int)), ui->horizontalSlider_saturation, SLOT(setValue(int)));
     connect(ui->horizontalSlider_saturation,SIGNAL(valueChanged(int)), ui->spinBox_saturation,SLOT(setValue(int)));
 
+    getRGBHistogram();
 }
 
 MainWindow::~MainWindow()
@@ -93,10 +94,6 @@ void MainWindow::on_action_openFile_triggered()
 //    Mat src = imread(origin_path.toStdString(), IMREAD_COLOR); //从路径中读取图片
 //    show_histogram(src);
     getRGBHistogram();
-
-
-
-
 //    //状态栏显示图片路径
 //    QLabel *label=ui->statusBar->findChild<QLabel *>("status");
 //    label->setText(srcDirPath);
@@ -587,12 +584,32 @@ int MainWindow::getRGBHistogram()
             int value = cvRound(256 * 0.9 *(dsthist.at<float>(i) / g_dhistmaxvalue));
             line(r_drawImage, Point(i, r_drawImage.rows - 1), Point(i, r_drawImage.rows - 1 - value), Scalar(0, 0, 255));
         }
+        Mat res1, res2;
 //        imshow("R通道直方图", r_drawImage);
-
-        add(b_drawImage, g_drawImage, r_drawImage);   //将三个直方图叠在一块
+        add(b_drawImage, g_drawImage, res1);   //将三个直方图叠在一块
+        add(res1, r_drawImage, res2);
+//        imshow("RGB直方图", b_drawImage);
+//        imshow("RGB直方图", g_drawImage);
 //        imshow("RGB直方图", r_drawImage);
-        imwrite("/Users/chenziwei/Downloads/RGB直方图.png", r_drawImage);
-//        waitKey(0);
+
+//        Mat m[3];
+//        m[0] = b_drawImage;
+//        m[1]=  g_drawImage;
+//        m[2]=  r_drawImage;
+
+//        cv::merge(m, 3, res);
+
+        imshow("RGB直方图", res2);
+
+//        waitKey(100);
+//        imwrite("/Users/chenziwei/Downloads/RGB直方图.png", res);
+        //读取本地的一张图片
+
+
+    QImage i(res2.data, res2.cols, res2.rows, res2.step, QImage::Format_RGB888);
+    i = ImageCenter(i, ui->label_imgshow);
+
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(i.rgbSwapped()));
         return 0;
 }
 
@@ -744,3 +761,4 @@ void MainWindow::on_pushButton_gaussianBlur_clicked()
 //    ui->label_imgshow->setPixmap(QPixmap::fromImage(image));
     ui->label_imgshow->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
 }
+

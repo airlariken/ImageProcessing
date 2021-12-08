@@ -64,6 +64,7 @@ private slots:
     Mat sharpen(const Mat &img, Mat &result);    //锐化算子
     void CreatGaussKernel(float **pdKernel, int kSize, float sigma);
     Mat GaussBlur(Mat src, int kSize);
+    void drawHistogram();
 
     void on_pushButton_meanFilter_clicked();
 
