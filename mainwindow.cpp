@@ -599,7 +599,7 @@ int MainWindow::getRGBHistogram()
 
 //        cv::merge(m, 3, res);
 
-        imshow("RGB直方图", res2);
+//        imshow("RGB直方图", res2);
 
 //        waitKey(100);
 //        imwrite("/Users/chenziwei/Downloads/RGB直方图.png", res);
@@ -607,9 +607,9 @@ int MainWindow::getRGBHistogram()
 
 
     QImage i(res2.data, res2.cols, res2.rows, res2.step, QImage::Format_RGB888);
-    i = ImageCenter(i, ui->label_imgshow);
+    i = ImageCenter(i, ui->label);
 
-    ui->label_imgshow->setPixmap(QPixmap::fromImage(i.rgbSwapped()));
+    ui->label->setPixmap(QPixmap::fromImage(i.rgbSwapped()));
         return 0;
 }
 
