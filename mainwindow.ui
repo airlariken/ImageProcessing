@@ -20,7 +20,7 @@
       <item>
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -120,6 +120,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>PushButton</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="verticalSpacer_2">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -133,6 +140,37 @@
            </spacer>
           </item>
          </layout>
+        </widget>
+        <widget class="QWidget" name="tab_3">
+         <attribute name="title">
+          <string>啊</string>
+         </attribute>
+         <widget class="QPushButton" name="pushButton_sharpen">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>10</y>
+            <width>112</width>
+            <height>32</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>锐化</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_gaussianBlur">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>40</y>
+            <width>112</width>
+            <height>32</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>高斯模糊</string>
+          </property>
+         </widget>
         </widget>
        </widget>
       </item>

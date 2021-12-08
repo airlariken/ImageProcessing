@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    origin_path = ":/iconImg/Image/基准态曲面图.jpg";
+    origin_path = "/Users/chenziwei/Downloads/第二问理想抛物面.jpg";
 
     ui->toolBar->setIconSize(QSize(20,20));//设置toolbar内icon大小，默认太大了太丑了
     //slider和spinbox联动，非常妙
@@ -594,4 +594,153 @@ int MainWindow::getRGBHistogram()
         imwrite("/Users/chenziwei/Downloads/RGB直方图.png", r_drawImage);
 //        waitKey(0);
         return 0;
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    string edgeBasePath("");
+    string command_esedbexport = "/Users/chenziwei/1/pythonSript.sh";
+    command_esedbexport += edgeBasePath;//这里的edgeBasePath就是外部的可变参数
+    system(command_esedbexport.c_str());
+
+}
+
+void MainWindow::on_pushButton_sharpen_clicked()
+{
+    //读取本地的一张图片
+    Mat srcimage = imread(origin_path.toStdString());
+    Mat res;
+    res = sharpen(srcimage, res);
+
+
+    QImage image(res.data, res.cols, res.rows, res.step, QImage::Format_RGB888);
+    image = ImageCenter(image, ui->label_imgshow);
+
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
+
+//    imshow("锐化", res);
+//    cv::waitKey(1000);
+//    ui->label_imgshow->setPixmap(QPixmap::fromImage(image));
+}
+
+Mat MainWindow::sharpen(const Mat &img, Mat &result)//锐化算子
+{
+//    //Method 1  直接操作像素点
+//    result.create(img.rows, img.cols, img.type());
+//    int nl = img.rows;
+//    int nc = img.cols * img.channels();
+//    for (int j = 1; j < nl - 1; j++)
+//    {
+//        const uchar* previous = img.ptr<const uchar>(j - 1);//上一行
+//        const uchar* current = img.ptr<const uchar>(j);//当前行
+//        const uchar* next = img.ptr<const uchar>(j + 1);//下一行
+//        uchar* output = result.ptr<uchar>(j);//输出行
+//        for (int i = 1; i < nc - 1; i++)
+//        {
+//             output[i]= saturate_cast<uchar>(5 * current[i] - current[i-1]
+//                - current[i- 1] - previous[i] - next[i]);
+//        }
+//    }
+//    //将未处理的像素设置为0
+//    result.row(0).setTo(Scalar(0));
+//    result.row(result.rows - 1).setTo(Scalar(0));
+//    result.col(0).setTo(Scalar(0));
+//    result.col(result.cols - 1).setTo(Scalar(0));
+//    return result;
+
+//    Method 2  cv::filter2D
+//    构造滤波核
+
+//        0  -1  0
+//        -1  5  -1
+//         0  -1  0
+    Mat kernel(3, 3, CV_32F, Scalar(0));
+    kernel.at<float>(1, 1) = 5.0;
+    kernel.at<float>(0, 1) = -1.0;
+    kernel.at<float>(1, 0) = -1.0;
+    kernel.at<float>(1, 2) = -1.0;
+    kernel.at<float>(2, 1) = -1.0;
+
+//    cout << kernel << endl;
+    filter2D(img, result, -1, kernel);
+
+    return result;
+}
+
+
+
+// 创建高斯核
+// kSize:卷积核的大小3、5、7等（3×3、5×5、7×7）
+// sigma:方差
+
+void MainWindow::CreatGaussKernel(float **pdKernel, int kSize, float sigma) {
+    int sum = 0;
+    float dCenter = (kSize - 1) / 2;
+    //生成高斯数据
+    for (int i = 0; i < kSize; i++) {
+        for (int j = 0; j < kSize; j++) {
+            //用和来近似平方和的开方
+            float dis = fabsf(i - dCenter) + fabsf(j - dCenter);
+            float val = exp(-dis * dis / (2 * sigma * sigma + EPS));
+            pdKernel[i][j] = val;
+            sum += val;
+        }
+    }
+    //归一化
+    for (int i = 0; i < kSize; i++) {
+        for (int j = 0; j < kSize; j++) {
+            pdKernel[i][j] /= (sum + EPS);
+        }
+    }
+}
+
+// KSize 3 5 7
+Mat MainWindow::GaussBlur(Mat src, int kSize) {
+    float sigma = 0.3*((kSize-1)*0.5-1)+0.8;
+    sigma = 0.2;
+    int row = src.rows;
+    int col = src.cols;
+    //分配高斯核空间
+    float **pKernel = new float*[kSize];
+    for (int i = 0; i < kSize; i++) {
+        pKernel[i] = new float[kSize];
+    }
+    Mat dst(row, col, CV_8UC3);
+    CreatGaussKernel(pKernel, kSize, sigma);
+    int border = (kSize - 1) / 2;
+    float sum = 0;
+    for (int i = border; i < row - border; i++) {
+        for (int j = border; j < col - border; j++) {
+            for (int k = 0; k < 3; k++) {
+                sum = 0;
+                for (int x = -border; x <= border; x++) {
+                    for (int y = -border; y <= border; y++) {
+                        sum += src.at<Vec3b>(i + x, j + y)[k] * pKernel[border + x][border + y];
+                    }
+                }
+                if (sum > 255) sum = 255;
+                else if (sum < 0) sum = 0;
+                dst.at<Vec3b>(i, j)[k] = sum;
+            }
+        }
+    }
+    return dst;
+}
+
+void MainWindow::on_pushButton_gaussianBlur_clicked()
+{
+    //读取本地的一张图片
+    Mat srcimage = imread(origin_path.toStdString());
+    Mat res;
+    res = GaussBlur(srcimage, 3);
+    GaussianBlur(srcimage, res, cv::Size(5,5), 1);
+//    imshow("高斯",res);
+//    waitKey(1000);
+
+
+    QImage image(res.data, res.cols, res.rows, res.step, QImage::Format_RGB888);
+    image = ImageCenter(image, ui->label_imgshow);
+
+//    ui->label_imgshow->setPixmap(QPixmap::fromImage(image));
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
 }

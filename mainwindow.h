@@ -16,6 +16,11 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "opencv2/imgcodecs.hpp"
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#define EPS 1e-7
+
 using namespace std;
 using namespace cv;
 QT_BEGIN_NAMESPACE
@@ -56,7 +61,9 @@ private slots:
     //opencv函数
     void show_histogram(Mat& img);
     int getRGBHistogram();
-
+    Mat sharpen(const Mat &img, Mat &result);    //锐化算子
+    void CreatGaussKernel(float **pdKernel, int kSize, float sigma);
+    Mat GaussBlur(Mat src, int kSize);
 
     void on_pushButton_meanFilter_clicked();
 
@@ -79,6 +86,12 @@ private slots:
     void on_horizontalSlider_saturation_valueChanged(int value);
 
     void on_horizontalSlider_rotate_valueChanged(int value);
+
+    void on_pushButton_clicked();
+
+    void on_pushButton_sharpen_clicked();
+
+    void on_pushButton_gaussianBlur_clicked();
 
 private:
 
