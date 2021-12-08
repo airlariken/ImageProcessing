@@ -18,6 +18,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->spinBox_saturation,SIGNAL(valueChanged(int)), ui->horizontalSlider_saturation, SLOT(setValue(int)));
     connect(ui->horizontalSlider_saturation,SIGNAL(valueChanged(int)), ui->spinBox_saturation,SLOT(setValue(int)));
 
+    QImage t1(":/iconImg/Image/亮度.png");
+    t1 = ImageCenter(t1, ui->label_exposure);
+    ui->label_exposure->setPixmap(QPixmap::fromImage(t1));
+    t1.load(":/iconImg/Image/对比度.png");
+    t1 = ImageCenter(t1, ui->label_exposure);
+    ui->label_contrast->setPixmap(QPixmap::fromImage(t1));
+
+    t1.load(":/iconImg/Image/饱和度.png");
+    t1 = ImageCenter(t1, ui->label_exposure);
+    ui->lable_saturation->setPixmap(QPixmap::fromImage(t1));
+
+//    :/iconImg/Image/旋转.png
     //画RGB直方图
     getRGBHistogram();
 
@@ -414,13 +426,16 @@ QImage MainWindow::adjustContrastAlgo(QImage Img, int iContrastValue)
 
 void MainWindow::on_horizontalSlider_contrast_valueChanged(int value)
 {
+
     if(origin_path!=nullptr) {
-        QImage image(origin_path);
+//        QImage image(origin_path);
+        QImage image(cur_img);
         QImage adj_img = adjustContrastAlgo(image, value);
         QImage Image=ImageCenter(adj_img,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
         cur_img = Image;
+        getRGBHistogram();
     }
 
 }
@@ -480,21 +495,20 @@ QImage MainWindow::adjustSaturationAlgo(QImage Img, int iSaturateValue)
 void MainWindow::on_horizontalSlider_saturation_valueChanged(int value)
 {
     if(origin_path!=nullptr) {
-        QImage image(origin_path);
+//        QImage image(origin_path);
+        QImage image(cur_img);
         QImage adj_img = adjustSaturationAlgo(image, value);
         QImage Image=ImageCenter(adj_img,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
         cur_img = Image;
     }
+    getRGBHistogram();
 }
 
 void MainWindow::on_horizontalSlider_rotate_valueChanged(int value)
 {
-
-
     //防止旋转后出现大小爆炸问题
-
     ui->label_imgshow->setMaximumHeight(ui->label_imgshow->height());
     ui->label_imgshow->setMinimumWidth(ui->label_imgshow->width());
 //    ui->label_imgshow->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
@@ -508,10 +522,7 @@ void MainWindow::on_horizontalSlider_rotate_valueChanged(int value)
 //        QImage Image=ImageCenter(images,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(images));
 //        ui->label_imgshow->setAlignment(Qt::AlignCenter);
-
-
-
-
+        getRGBHistogram();
     }
     else{
         QMessageBox::warning(nullptr, "提示", "请先选择一张图片！", QMessageBox::Yes |  QMessageBox::Yes);
@@ -796,67 +807,62 @@ void MainWindow::on_pushButton_objectDetection_clicked()
     waitKey(0);
     destroyAllWindows();
 
-
-
-
-
-
 }
 
 //膨胀算法
 void MainWindow::on_pushButton_dilate_clicked()
 {
     //从文件中读取成灰度图像
-       Mat img = imread(origin_path.toStdString(), IMREAD_GRAYSCALE);
-       if (img.empty()) {
-           cerr<<"Can not load image %s\n"<<origin_path.toStdString();
-           return;
-       }
-       //OpenCV方法
-       Mat dilated_cv;
-       dilate(img, dilated_cv, Mat());
+   Mat img = imread(origin_path.toStdString(), IMREAD_GRAYSCALE);
+   if (img.empty()) {
+       cerr<<"Can not load image %s\n"<<origin_path.toStdString();
+       return;
+   }
+   //OpenCV方法
+   Mat dilated_cv;
+   dilate(img, dilated_cv, Mat());
 
-       //自定义方法
-       Mat dilated_my;
-       dilated_my.create(img.rows, img.cols, CV_8UC1);
-       for (int i = 0; i < img.rows; ++i)
+   //自定义方法
+   Mat dilated_my;
+   dilated_my.create(img.rows, img.cols, CV_8UC1);
+   for (int i = 0; i < img.rows; ++i)
+   {
+       for (int j = 0; j < img.cols; ++j)
        {
-           for (int j = 0; j < img.cols; ++j)
+           //uchar minV = 255;
+           uchar maxV = 0;
+
+           //遍历周围最大像素值
+           for (int yi = i-1; yi <= i+1; yi++)
            {
-               //uchar minV = 255;
-               uchar maxV = 0;
-
-               //遍历周围最大像素值
-               for (int yi = i-1; yi <= i+1; yi++)
+               for (int xi = j-1; xi <= j+1; xi++)
                {
-                   for (int xi = j-1; xi <= j+1; xi++)
+                   if (xi<0||xi>= img.cols|| yi<0 || yi >= img.rows)
                    {
-                       if (xi<0||xi>= img.cols|| yi<0 || yi >= img.rows)
-                       {
-                           continue;
-                       }
-                       //minV = (std::min<uchar>)(minV, img.at<uchar>(yi, xi));
-                       maxV = (std::max<uchar>)(maxV, img.at<uchar>(yi, xi));
+                       continue;
                    }
+                   //minV = (std::min<uchar>)(minV, img.at<uchar>(yi, xi));
+                   maxV = (std::max<uchar>)(maxV, img.at<uchar>(yi, xi));
                }
-               dilated_my.at<uchar>(i, j) = maxV;
            }
+           dilated_my.at<uchar>(i, j) = maxV;
        }
+   }
 
-       //比较两者的结果
-       Mat c;
-       compare(dilated_cv, dilated_my, c, CMP_EQ);
+   //比较两者的结果
+   Mat c;
+   compare(dilated_cv, dilated_my, c, CMP_EQ);
 
-       //显示
-       imshow("原始", img);
-       waitKey(0);
-       imshow("膨胀_cv", dilated_cv);
-       waitKey(0);
-       imshow("膨胀_my", dilated_my);
-       waitKey(0);
-       imshow("比较结果", c);
-       waitKey(0);
-       destroyAllWindows();
+   //显示
+   imshow("原始", img);
+   waitKey(0);
+   imshow("膨胀_cv", dilated_cv);
+   waitKey(0);
+   imshow("膨胀_my", dilated_my);
+   waitKey(0);
+   imshow("比较结果", c);
+   waitKey(0);
+   destroyAllWindows();
 }
 
 //腐蚀算法
@@ -920,13 +926,6 @@ void MainWindow::on_pushButton_erode_clicked()
     destroyAllWindows();
     return;
 }
-
-void MainWindow::on_horizontalSlider_exposure_sliderReleased()
-{
-
-    getRGBHistogram();
-}
-
 
 
 cv::Mat MainWindow::QImage2cvMat(QImage image)

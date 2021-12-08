@@ -103,7 +103,6 @@ private slots:
 
     void on_pushButton_erode_clicked();
 
-    void on_horizontalSlider_exposure_sliderReleased();
 
 private:
     YOLO *yolo_model;

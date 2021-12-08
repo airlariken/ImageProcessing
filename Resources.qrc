@@ -4,6 +4,10 @@
         <file>Image/基准态曲面图.jpg</file>
         <file>Image/边栏.png</file>
         <file>截屏.jpg</file>
+        <file>Image/饱和度.png</file>
+        <file>Image/对比度.png</file>
+        <file>Image/亮度.png</file>
+        <file>Image/旋转.png</file>
     </qresource>
     <qresource prefix="/yolo">
         <file>coco.name</file>
