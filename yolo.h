@@ -8,7 +8,7 @@
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgproc.hpp>
 //#include <opencv2/highgui.hpp>
-
+#include <QFile>
 using namespace cv;
 using namespace dnn;
 using namespace std;
@@ -32,7 +32,7 @@ class YOLO
     private:
         const float anchors[3][6] = {{10.0, 13.0, 16.0, 30.0, 33.0, 23.0}, {30.0, 61.0, 62.0, 45.0, 59.0, 119.0},{116.0, 90.0, 156.0, 198.0, 373.0, 326.0}};
         const float stride[3] = { 8.0, 16.0, 32.0 };
-        const string classesFile = "/Users/chenziwei/Qt project/ImageProcessing/coco.name";
+        const string classesFile = ":/yolo/coco.name";
         const int inpWidth = 640;
         const int inpHeight = 640;
         float confThreshold;

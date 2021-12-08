@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     origin_path = "/Users/chenziwei/Downloads/第二问理想抛物面.jpg";
-
+    cur_img = QImage(origin_path);
     ui->toolBar->setIconSize(QSize(20,20));//设置toolbar内icon大小，默认太大了太丑了
     //slider和spinbox联动，非常妙
     connect(ui->spinBox_exposure,SIGNAL(valueChanged(int)), ui->horizontalSlider_exposure, SLOT(setValue(int)));
@@ -18,17 +18,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->spinBox_saturation,SIGNAL(valueChanged(int)), ui->horizontalSlider_saturation, SLOT(setValue(int)));
     connect(ui->horizontalSlider_saturation,SIGNAL(valueChanged(int)), ui->spinBox_saturation,SLOT(setValue(int)));
 
+    //画RGB直方图
     getRGBHistogram();
 
+    //yolo ini
     Net_config yolo_nets[4] = {
         {0.5, 0.5, 0.5, "yolov5s"},
         {0.5, 0.5, 0.5,  "yolov5m"},
         {0.5, 0.5, 0.5, "yolov5l"},
         {0.5, 0.5, 0.5, "yolov5x"}
     };
-
-
     yolo_model = new YOLO(yolo_nets[0]);
+
 }
 
 MainWindow::~MainWindow()
@@ -333,8 +334,10 @@ void MainWindow::on_horizontalSlider_exposure_valueChanged(int value)
             data[i] = qRgba(red, green, blue, qAlpha(data[i]));
         }
         QImage Image=ImageCenter(image,ui->label_imgshow);
+        cur_img = Image;
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
+        getRGBHistogram();
     }
 
 }
@@ -417,6 +420,7 @@ void MainWindow::on_horizontalSlider_contrast_valueChanged(int value)
         QImage Image=ImageCenter(adj_img,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
+        cur_img = Image;
     }
 
 }
@@ -481,6 +485,7 @@ void MainWindow::on_horizontalSlider_saturation_valueChanged(int value)
         QImage Image=ImageCenter(adj_img,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
+        cur_img = Image;
     }
 }
 
@@ -516,49 +521,52 @@ void MainWindow::on_horizontalSlider_rotate_valueChanged(int value)
 //    ui->label_imgshow->setMinimumWidth(16777215);
 }
 
-void MainWindow::show_histogram(Mat& img)
-{
-    //为计算直方图配置变量
-    //首先是需要计算的图像的通道，就是需要计算图像的哪个通道（bgr空间需要确定计算 b或g货r空间）
-    int channels = 0;
-    //然后是配置输出的结果存储的 空间 ，用MatND类型来存储结果
-    MatND dstHist;
-    //接下来是直方图的每一个维度的 柱条的数目（就是将数值分组，共有多少组）
-    int histSize[] = { 256 };       //如果这里写成int histSize = 256;   那么下面调用计算直方图的函数的时候，该变量需要写 &histSize
-    //最后是确定每个维度的取值范围，就是横坐标的总数
-    //首先得定义一个变量用来存储 单个维度的 数值的取值范围
-    float midRanges[] = { 0, 256 };
-    const float *ranges[] = { midRanges };
+//void MainWindow::show_histogram(Mat& img)
+//{
+//    //为计算直方图配置变量
+//    //首先是需要计算的图像的通道，就是需要计算图像的哪个通道（bgr空间需要确定计算 b或g货r空间）
+//    int channels = 0;
+//    //然后是配置输出的结果存储的 空间 ，用MatND类型来存储结果
+//    MatND dstHist;
+//    //接下来是直方图的每一个维度的 柱条的数目（就是将数值分组，共有多少组）
+//    int histSize[] = { 256 };       //如果这里写成int histSize = 256;   那么下面调用计算直方图的函数的时候，该变量需要写 &histSize
+//    //最后是确定每个维度的取值范围，就是横坐标的总数
+//    //首先得定义一个变量用来存储 单个维度的 数值的取值范围
+//    float midRanges[] = { 0, 256 };
+//    const float *ranges[] = { midRanges };
 
-    calcHist(&img, 1, &channels, Mat(), dstHist, 1, histSize, ranges, true, false);
+//    calcHist(&img, 1, &channels, Mat(), dstHist, 1, histSize, ranges, true, false);
 
-    //calcHist  函数调用结束后，dstHist变量中将储存了 直方图的信息  用dstHist的模版函数 at<Type>(i)得到第i个柱条的值
-    //at<Type>(i, j)得到第i个并且第j个柱条的值
+//    //calcHist  函数调用结束后，dstHist变量中将储存了 直方图的信息  用dstHist的模版函数 at<Type>(i)得到第i个柱条的值
+//    //at<Type>(i, j)得到第i个并且第j个柱条的值
 
-    //开始直观的显示直方图——绘制直方图
-    //首先先创建一个黑底的图像，为了可以显示彩色，所以该绘制图像是一个8位的3通道图像
-    Mat drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
-    //因为任何一个图像的某个像素的总个数，都有可能会有很多，会超出所定义的图像的尺寸，针对这种情况，先对个数进行范围的限制
-    //先用 minMaxLoc函数来得到计算直方图后的像素的最大个数
-    double g_dHistMaxValue;
-    minMaxLoc(dstHist, 0, &g_dHistMaxValue, 0, 0);
-    //将像素的个数整合到 图像的最大范围内
-    //遍历直方图得到的数据
-    for (int i = 0; i < 256; i++)
-    {
-        int value = cvRound(dstHist.at<float>(i) * 256 * 0.9 / g_dHistMaxValue);
+//    //开始直观的显示直方图——绘制直方图
+//    //首先先创建一个黑底的图像，为了可以显示彩色，所以该绘制图像是一个8位的3通道图像
+//    Mat drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
+//    //因为任何一个图像的某个像素的总个数，都有可能会有很多，会超出所定义的图像的尺寸，针对这种情况，先对个数进行范围的限制
+//    //先用 minMaxLoc函数来得到计算直方图后的像素的最大个数
+//    double g_dHistMaxValue;
+//    minMaxLoc(dstHist, 0, &g_dHistMaxValue, 0, 0);
+//    //将像素的个数整合到 图像的最大范围内
+//    //遍历直方图得到的数据
+//    for (int i = 0; i < 256; i++)
+//    {
+//        int value = cvRound(dstHist.at<float>(i) * 256 * 0.9 / g_dHistMaxValue);
 
-        line(drawImage, Point(i, drawImage.rows - 1), Point(i, drawImage.rows - 1 - value), Scalar(255, 255, 255));
-    }
+//        line(drawImage, Point(i, drawImage.rows - 1), Point(i, drawImage.rows - 1 - value), Scalar(255, 255, 255));
+//    }
 
-//    imshow("【原图直方图】", drawImage);
-    imwrite("/Users/chenziwei/Downloads/nice.png", drawImage); //保存处理后的图片
-}
+////    imshow("【原图直方图】", drawImage);
+//    imwrite("/Users/chenziwei/Downloads/nice.png", drawImage); //保存处理后的图片
+//}
 
 int MainWindow::getRGBHistogram()
 {
     //读取本地的一张图片
-        Mat srcimage = imread(origin_path.toStdString());
+//    QPixmap t(*ui->label_imgshow->pixmap());
+
+        Mat srcimage = QImage2cvMat(cur_img);
+//        Mat srcimage = imread(origin_path.toStdString());
 //        imshow("原图", srcimage);
         int channels = 0;
         int histsize[] = { 256 };
@@ -772,7 +780,7 @@ void MainWindow::on_pushButton_gaussianBlur_clicked()
     ui->label_imgshow->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
 }
 
-
+//目标识别 物体检测
 void MainWindow::on_pushButton_objectDetection_clicked()
 {
 
@@ -785,6 +793,8 @@ void MainWindow::on_pushButton_objectDetection_clicked()
 
 //    imwrite("/Users/chenziwei/Downloads/srcimg.jpg", srcimg);
     imshow("nice", srcimg);
+    waitKey(0);
+    destroyAllWindows();
 
 
 
@@ -793,18 +803,15 @@ void MainWindow::on_pushButton_objectDetection_clicked()
 
 }
 
+//膨胀算法
 void MainWindow::on_pushButton_dilate_clicked()
 {
     //从文件中读取成灰度图像
-
        Mat img = imread(origin_path.toStdString(), IMREAD_GRAYSCALE);
-       if (img.empty())
-       {
-           fprintf(stderr, "Can not load image %s\n", origin_path.toStdString());
-//           return -1;
+       if (img.empty()) {
+           cerr<<"Can not load image %s\n"<<origin_path.toStdString();
            return;
        }
-
        //OpenCV方法
        Mat dilated_cv;
        dilate(img, dilated_cv, Mat());
@@ -848,6 +855,98 @@ void MainWindow::on_pushButton_dilate_clicked()
        imshow("膨胀_my", dilated_my);
        waitKey(0);
        imshow("比较结果", c);
+       waitKey(0);
+       destroyAllWindows();
+}
 
-       waitKey();
+//腐蚀算法
+void MainWindow::on_pushButton_erode_clicked()
+{
+    //从文件中读取成灰度图像
+
+    Mat img = imread(origin_path.toStdString(), IMREAD_GRAYSCALE);
+
+    if (img.empty())
+    {
+        cerr<<"Can not load image %s\n"<<origin_path.toStdString();
+        return ;
+    }
+
+    //OpenCV方法
+    Mat eroded_cv;
+    erode(img, eroded_cv, Mat());
+
+    //自定义方法
+    Mat eroded_my;
+    eroded_my.create(img.rows, img.cols, CV_8UC1);
+    for (int i = 0; i < img.rows; ++i)
+    {
+        for (int j = 0; j < img.cols; ++j)
+        {
+            uchar minV = 255;
+            //uchar maxV = 0;
+
+            //遍历周围最大像素值
+            for (int yi = i-1; yi <= i+1; yi++)
+            {
+                for (int xi = j-1; xi <= j+1; xi++)
+                {
+                    if (xi<0||xi>= img.cols|| yi<0 || yi >= img.rows)
+                    {
+                        continue;
+                    }
+                    minV = (std::min<uchar>)(minV, img.at<uchar>(yi, xi));
+                    //maxV = (std::max<uchar>)(maxV, img.at<uchar>(yi, xi));
+                }
+            }
+            eroded_my.at<uchar>(i, j) = minV;
+        }
+    }
+
+    //比较两者的结果
+    Mat c;
+    compare(eroded_cv, eroded_my, c, CMP_EQ);
+
+
+    //显示
+    imshow("原始", img);
+    waitKey(0);
+    imshow("膨胀_cv", eroded_cv);
+    waitKey(0);
+    imshow("膨胀_my", eroded_my);
+    waitKey(0);
+    imshow("比较结果", c);
+    waitKey(0);
+    destroyAllWindows();
+    return;
+}
+
+void MainWindow::on_horizontalSlider_exposure_sliderReleased()
+{
+
+    getRGBHistogram();
+}
+
+
+
+cv::Mat MainWindow::QImage2cvMat(QImage image)
+{
+    cv::Mat mat;
+    qDebug() << image.format();
+    switch(image.format())
+    {
+    case QImage::Format_ARGB32:
+    case QImage::Format_RGB32:
+    case QImage::Format_ARGB32_Premultiplied:
+        mat = cv::Mat(image.height(), image.width(), CV_8UC4, (void*)image.constBits(), image.bytesPerLine());
+        break;
+    case QImage::Format_RGB888:
+        mat = cv::Mat(image.height(), image.width(), CV_8UC3, (void*)image.constBits(), image.bytesPerLine());
+        cv::cvtColor(mat, mat, CV_BGR2RGB);
+        break;
+    case QImage::Format_Indexed8:
+        mat = cv::Mat(image.height(), image.width(), CV_8UC1, (void*)image.constBits(), image.bytesPerLine());
+        break;
+    }
+    return mat;
 }

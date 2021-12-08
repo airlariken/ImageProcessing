@@ -7,12 +7,27 @@ YOLO::YOLO(Net_config config)
     this->objThreshold = config.objThreshold;
     strcpy(this->netname, config.netname.c_str());
 
-    ifstream ifs(classesFile);
-    if(ifs.fail()){
-        cout<<"cant open coco.names"<<endl;
+
+
+    //为了读取资源文件，必须将ifstream改成qt接口QFile，fstream必须绝对路径
+    QFile file(QString::fromStdString(classesFile));
+
+    bool isopen = file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!isopen)
+        cerr<<"cant open :/yolo/coco.name"<<endl;
+//    QByteArray t = file.readAll();
+    while (!file.atEnd()) {
+        QByteArray line = file.readLine();
+        this->classes.push_back(line.toStdString());
     }
-    string line;
-    while (getline(ifs, line)) this->classes.push_back(line);
+    file.close();
+
+//    ifstream ifs(classesFile);
+//    if(ifs.fail()){
+//        cout<<"cant open coco.names"<<endl;
+//    }
+//    string line;
+//    while (getline(ifs, line)) this->classes.push_back(line);
 
     string modelFile = "/Users/chenziwei/Downloads/" ;
     modelFile += this->netname;

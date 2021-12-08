@@ -3,5 +3,9 @@
         <file>Image/打开.png</file>
         <file>Image/基准态曲面图.jpg</file>
         <file>Image/边栏.png</file>
+        <file>截屏.jpg</file>
+    </qresource>
+    <qresource prefix="/yolo">
+        <file>coco.name</file>
     </qresource>
 </RCC>

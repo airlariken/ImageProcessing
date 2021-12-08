@@ -15,11 +15,13 @@
 //#include <opencv2/highgui/highgui.hpp>
 //#include <opencv2/imgproc/imgproc.hpp>
 //#include "opencv2/imgcodecs.hpp"
+#include<opencv2/imgproc/types_c.h>     //CV_BGR2RGB
 
 #include "Header.h"
 #include "yolo.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include<QDebug>
 #define EPS 1e-7
 
 using namespace std;
@@ -60,11 +62,12 @@ private slots:
 //    QImage gray2(QImage image);//灰度化2
 
     //opencv函数
-    void show_histogram(Mat& img);
+//    void show_histogram(Mat& img);
     int getRGBHistogram();
     Mat sharpen(const Mat &img, Mat &result);    //锐化算子
     void CreatGaussKernel(float **pdKernel, int kSize, float sigma);
     Mat GaussBlur(Mat src, int kSize);
+    cv::Mat QImage2cvMat(QImage image);
 
     void on_pushButton_meanFilter_clicked();
 
@@ -98,10 +101,15 @@ private slots:
 
     void on_pushButton_dilate_clicked();
 
+    void on_pushButton_erode_clicked();
+
+    void on_horizontalSlider_exposure_sliderReleased();
+
 private:
     YOLO *yolo_model;
     Ui::MainWindow *ui;
     QString origin_path;//目前处理的图片的原图
     int explosure_value;
+    QImage cur_img;
 };
 #endif // MAINWINDOW_H
