@@ -62,13 +62,15 @@ private slots:
 //    QImage gray2(QImage image);//灰度化2
 
     //opencv函数
-//    void show_histogram(Mat& img);
+    void getGrayHistogram(Mat& img);
     int getRGBHistogram();
     Mat sharpen(const Mat &img, Mat &result);    //锐化算子
     void CreatGaussKernel(float **pdKernel, int kSize, float sigma);
     Mat GaussBlur(Mat src, int kSize);
+    //Mat 与QImage转换
     cv::Mat QImage2cvMat(QImage image);
-
+    QImage cvMat2QImage(const cv::Mat& mat);
+    void PyrDownTest();
     void on_pushButton_meanFilter_clicked();
 
     void on_pushButton_originalImg_clicked();
@@ -104,11 +106,22 @@ private slots:
     void on_pushButton_erode_clicked();
 
 
+    void on_pushButton_renew_clicked();
+
+    void on_action_save_triggered();
+
+    void on_pushButton_histEqualization_clicked();
+
+    void on_pushButton_downSampling_clicked();
+
+    void on_action_renew_triggered();
+
 private:
     YOLO *yolo_model;
     Ui::MainWindow *ui;
     QString origin_path;//目前处理的图片的原图
     int explosure_value;
     QImage cur_img;
+
 };
 #endif // MAINWINDOW_H

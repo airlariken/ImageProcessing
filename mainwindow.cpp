@@ -7,8 +7,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     origin_path = "/Users/chenziwei/Downloads/第二问理想抛物面.jpg";
+    origin_path ="/Users/chenziwei/Downloads/中国地质大学.jpeg";
+
     cur_img = QImage(origin_path);
-    ui->toolBar->setIconSize(QSize(20,20));//设置toolbar内icon大小，默认太大了太丑了
+    ui->toolBar->setIconSize(QSize(25,25));//设置toolbar内icon大小，默认太大了太丑了
     //slider和spinbox联动，非常妙
     connect(ui->spinBox_exposure,SIGNAL(valueChanged(int)), ui->horizontalSlider_exposure, SLOT(setValue(int)));
     connect(ui->horizontalSlider_exposure,SIGNAL(valueChanged(int)), ui->spinBox_exposure,SLOT(setValue(int)));
@@ -31,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 //    :/iconImg/Image/旋转.png
     //画RGB直方图
-    getRGBHistogram();
+//    getRGBHistogram();
 
     //yolo ini
     Net_config yolo_nets[4] = {
@@ -132,12 +134,14 @@ void MainWindow::on_action_openFile_triggered()
 void MainWindow::on_pushButton_toGray_clicked()
 {
     if(origin_path!=nullptr) {
-    QImage image(origin_path);
-
+//    QImage image(origin_path);
+    QImage image(cur_img);
     QImage images=gray(image);
     QImage Image=ImageCenter(images,ui->label_imgshow);
     ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
     ui->label_imgshow->setAlignment(Qt::AlignCenter);
+    Mat m = QImage2cvMat(Image);
+    getGrayHistogram(m);
     }
     else {
         QMessageBox::warning(nullptr, "提示", "请先选择一张图片！", QMessageBox::Yes |  QMessageBox::Yes);
@@ -201,15 +205,17 @@ QImage MainWindow::meanFilterAlgo(QImage image){
 void MainWindow::on_pushButton_meanFilter_clicked()
 {
     if(origin_path!=nullptr){
-    QImage image(origin_path);
+//    QImage image(origin_path);
+        QImage image(cur_img);
         image=meanFilterAlgo(image);
-             QImage Image=ImageCenter(image,ui->label_imgshow);
-             ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
-             ui->label_imgshow->setAlignment(Qt::AlignCenter);
-}
+        QImage Image=ImageCenter(image,ui->label_imgshow);
+        ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
+        ui->label_imgshow->setAlignment(Qt::AlignCenter);
+    }
     else{
         QMessageBox::warning(nullptr, "提示", "请先选择一张图片！", QMessageBox::Yes |  QMessageBox::Yes);
     }
+    getRGBHistogram();
 }
 
 void MainWindow::on_pushButton_originalImg_clicked()
@@ -223,6 +229,7 @@ void MainWindow::on_pushButton_originalImg_clicked()
     else{
         QMessageBox::warning(nullptr, "提示", "请先选择一张图片！", QMessageBox::Yes |  QMessageBox::Yes);
     }
+    getRGBHistogram();
 }
 
 
@@ -273,7 +280,8 @@ QImage MainWindow::edgeDetection(QImage image){
 void MainWindow::on_pushButton_edgeDetection_clicked()
 {
     if(origin_path!=nullptr){
-    QImage image(origin_path);
+//    QImage image(origin_path);
+    QImage image(cur_img);
     QImage newImage =edgeDetection(image);
     QImage Image=ImageCenter(newImage,ui->label_imgshow);
     ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
@@ -308,27 +316,36 @@ QImage MainWindow::gammaTransferALgo(QImage image){
 void MainWindow::on_pushButton_gammaTransfer_clicked()
 {
     if(origin_path!=nullptr){
-        QImage image(origin_path);
+        QImage image(cur_img);
         image=gammaTransferALgo(image);
         QImage Image=ImageCenter(image,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
+        getRGBHistogram();
     }else{
         QMessageBox::warning(nullptr, "提示", "请先打开图片！", QMessageBox::Yes |  QMessageBox::Yes);
     }
+
 }
 
 void MainWindow::on_pushButton_imgSave_clicked()
 {
-
+    on_action_save_triggered();
 }
 
     //亮度调节
 void MainWindow::on_horizontalSlider_exposure_valueChanged(int value)
 {
 
+//        static int ori_val = 0;
     if(origin_path!=nullptr) {
-        QImage image(origin_path);
+
+//        QImage image(origin_path);
+        QImage image(cur_img);
+//        int off_set = (int)value - (int)ori_val;
+//        ori_val = value;
+//        cout<<(int)off_set<<endl;
+//        qDebug()<<off_set;
         int red, green, blue;
         int pixels = image.width() * image.height();
         unsigned int *data = (unsigned int *)image.bits();
@@ -346,7 +363,7 @@ void MainWindow::on_horizontalSlider_exposure_valueChanged(int value)
             data[i] = qRgba(red, green, blue, qAlpha(data[i]));
         }
         QImage Image=ImageCenter(image,ui->label_imgshow);
-        cur_img = Image;
+//        cur_img = Image;
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
         getRGBHistogram();
@@ -426,15 +443,17 @@ QImage MainWindow::adjustContrastAlgo(QImage Img, int iContrastValue)
 
 void MainWindow::on_horizontalSlider_contrast_valueChanged(int value)
 {
-
+    static int ori_val = 0;
     if(origin_path!=nullptr) {
 //        QImage image(origin_path);
         QImage image(cur_img);
+//        int off_set = value - ori_val;
+//        ori_val = value;
         QImage adj_img = adjustContrastAlgo(image, value);
         QImage Image=ImageCenter(adj_img,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
-        cur_img = Image;
+//        cur_img = Image;
         getRGBHistogram();
     }
 
@@ -494,14 +513,17 @@ QImage MainWindow::adjustSaturationAlgo(QImage Img, int iSaturateValue)
 
 void MainWindow::on_horizontalSlider_saturation_valueChanged(int value)
 {
+//    static int ori_val = 0;
     if(origin_path!=nullptr) {
 //        QImage image(origin_path);
         QImage image(cur_img);
+//        int off_set = value - ori_val;
+//        ori_val = value;
         QImage adj_img = adjustSaturationAlgo(image, value);
         QImage Image=ImageCenter(adj_img,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
-        cur_img = Image;
+//        cur_img = Image;
     }
     getRGBHistogram();
 }
@@ -514,15 +536,15 @@ void MainWindow::on_horizontalSlider_rotate_valueChanged(int value)
 //    ui->label_imgshow->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     if(ui->label_imgshow->pixmap()!=nullptr){
 //        QImage images(ui->label_imgshow->pixmap()->toImage());
-        QImage images(origin_path);
-        images = ImageCenter(images, ui->label_imgshow);
-        QMatrix matrix;
-        matrix.rotate(-value);//逆时针旋转90度
-        images = images.transformed(matrix,Qt::SmoothTransformation);
+    QImage images(origin_path);
+    images = ImageCenter(images, ui->label_imgshow);
+    QMatrix matrix;
+    matrix.rotate(-value);//逆时针旋转90度
+    images = images.transformed(matrix,Qt::SmoothTransformation);
 //        QImage Image=ImageCenter(images,ui->label_imgshow);
-        ui->label_imgshow->setPixmap(QPixmap::fromImage(images));
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(images));
 //        ui->label_imgshow->setAlignment(Qt::AlignCenter);
-        getRGBHistogram();
+    getRGBHistogram();
     }
     else{
         QMessageBox::warning(nullptr, "提示", "请先选择一张图片！", QMessageBox::Yes |  QMessageBox::Yes);
@@ -532,107 +554,118 @@ void MainWindow::on_horizontalSlider_rotate_valueChanged(int value)
 //    ui->label_imgshow->setMinimumWidth(16777215);
 }
 
-//void MainWindow::show_histogram(Mat& img)
-//{
-//    //为计算直方图配置变量
-//    //首先是需要计算的图像的通道，就是需要计算图像的哪个通道（bgr空间需要确定计算 b或g货r空间）
-//    int channels = 0;
-//    //然后是配置输出的结果存储的 空间 ，用MatND类型来存储结果
-//    MatND dstHist;
-//    //接下来是直方图的每一个维度的 柱条的数目（就是将数值分组，共有多少组）
-//    int histSize[] = { 256 };       //如果这里写成int histSize = 256;   那么下面调用计算直方图的函数的时候，该变量需要写 &histSize
-//    //最后是确定每个维度的取值范围，就是横坐标的总数
-//    //首先得定义一个变量用来存储 单个维度的 数值的取值范围
-//    float midRanges[] = { 0, 256 };
-//    const float *ranges[] = { midRanges };
+void MainWindow::getGrayHistogram(Mat& img)
+{
+    //为计算直方图配置变量
+    //首先是需要计算的图像的通道，就是需要计算图像的哪个通道（bgr空间需要确定计算 b或g货r空间）
+    int channels = 0;
+    //然后是配置输出的结果存储的 空间 ，用MatND类型来存储结果
+    MatND dstHist;
+    //接下来是直方图的每一个维度的 柱条的数目（就是将数值分组，共有多少组）
+    int histSize[] = { 256 };       //如果这里写成int histSize = 256;   那么下面调用计算直方图的函数的时候，该变量需要写 &histSize
+    //最后是确定每个维度的取值范围，就是横坐标的总数
+    //首先得定义一个变量用来存储 单个维度的 数值的取值范围
+    float midRanges[] = { 0, 256 };
+    const float *ranges[] = { midRanges };
 
-//    calcHist(&img, 1, &channels, Mat(), dstHist, 1, histSize, ranges, true, false);
+    calcHist(&img, 1, &channels, Mat(), dstHist, 1, histSize, ranges, true, false);
 
-//    //calcHist  函数调用结束后，dstHist变量中将储存了 直方图的信息  用dstHist的模版函数 at<Type>(i)得到第i个柱条的值
-//    //at<Type>(i, j)得到第i个并且第j个柱条的值
+    //calcHist  函数调用结束后，dstHist变量中将储存了 直方图的信息  用dstHist的模版函数 at<Type>(i)得到第i个柱条的值
+    //at<Type>(i, j)得到第i个并且第j个柱条的值
 
-//    //开始直观的显示直方图——绘制直方图
-//    //首先先创建一个黑底的图像，为了可以显示彩色，所以该绘制图像是一个8位的3通道图像
-//    Mat drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
-//    //因为任何一个图像的某个像素的总个数，都有可能会有很多，会超出所定义的图像的尺寸，针对这种情况，先对个数进行范围的限制
-//    //先用 minMaxLoc函数来得到计算直方图后的像素的最大个数
-//    double g_dHistMaxValue;
-//    minMaxLoc(dstHist, 0, &g_dHistMaxValue, 0, 0);
-//    //将像素的个数整合到 图像的最大范围内
-//    //遍历直方图得到的数据
-//    for (int i = 0; i < 256; i++)
-//    {
-//        int value = cvRound(dstHist.at<float>(i) * 256 * 0.9 / g_dHistMaxValue);
+    //开始直观的显示直方图——绘制直方图
+    //首先先创建一个黑底的图像，为了可以显示彩色，所以该绘制图像是一个8位的3通道图像
+    Mat drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
+    //因为任何一个图像的某个像素的总个数，都有可能会有很多，会超出所定义的图像的尺寸，针对这种情况，先对个数进行范围的限制
+    //先用 minMaxLoc函数来得到计算直方图后的像素的最大个数
+    double g_dHistMaxValue;
+    minMaxLoc(dstHist, 0, &g_dHistMaxValue, 0, 0);
+    //将像素的个数整合到 图像的最大范围内
+    //遍历直方图得到的数据
+    for (int i = 0; i < 256; i++)
+    {
+        int value = cvRound(dstHist.at<float>(i) * 256 * 0.9 / g_dHistMaxValue);
 
-//        line(drawImage, Point(i, drawImage.rows - 1), Point(i, drawImage.rows - 1 - value), Scalar(255, 255, 255));
-//    }
+        line(drawImage, Point(i, drawImage.rows - 1), Point(i, drawImage.rows - 1 - value), Scalar(255, 255, 255));
+    }
 
-////    imshow("【原图直方图】", drawImage);
+//    imshow("【原图直方图】", drawImage);
 //    imwrite("/Users/chenziwei/Downloads/nice.png", drawImage); //保存处理后的图片
-//}
+
+    QImage i(cvMat2QImage(drawImage));
+    i = ImageCenter(i, ui->label);
+
+    ui->label->setPixmap(QPixmap::fromImage(i));
+    return ;
+
+}
 
 int MainWindow::getRGBHistogram()
 {
     //读取本地的一张图片
 //    QPixmap t(*ui->label_imgshow->pixmap());
+    QImage t = ui->label_imgshow->pixmap(Qt::ReturnByValue).toImage();
+    if(t.isNull()){
+        cerr<<"cant read pixmap!"<<endl;
+        return -255;
+    }
 
-        Mat srcimage = QImage2cvMat(cur_img);
-//        Mat srcimage = imread(origin_path.toStdString());
-//        imshow("原图", srcimage);
-        int channels = 0;
-        int histsize[] = { 256 };
-        float midranges[] = { 0,255 };
-        const float *ranges[] = { midranges };
-        MatND  dsthist;    //要输出的直方图
-        //重点关注calcHist函数，即为计算直方图的函数
-        calcHist(&srcimage, 1, &channels, Mat(), dsthist, 1, histsize, ranges, true, false);
+    Mat srcimage = QImage2cvMat(t);
+    //        Mat srcimage = imread(origin_path.toStdString());
+    int channels = 0;
+    int histsize[] = { 256 };
+    float midranges[] = { 0,255 };
+    const float *ranges[] = { midranges };
+    MatND  dsthist;    //要输出的直方图
+    //重点calcHist函数，即为计算直方图的函数
+    calcHist(&srcimage, 1, &channels, Mat(), dsthist, 1, histsize, ranges, true, false);
 
-        Mat b_drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
-        double g_dhistmaxvalue;
-        minMaxLoc(dsthist, 0, &g_dhistmaxvalue, 0, 0);
-        for (int i = 0;i < 256;i++) {
-            //这里的dsthist.at<float>(i)就是每个bins对应的纵轴的高度
-            int value = cvRound(256 * 0.9 *(dsthist.at<float>(i) / g_dhistmaxvalue));
-            line(b_drawImage, Point(i, b_drawImage.rows - 1), Point(i, b_drawImage.rows - 1 - value), Scalar(255, 0, 0));
-        }
-//        imshow("B通道直方图", b_drawImage);
+    Mat b_drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
+    double g_dhistmaxvalue;
+    minMaxLoc(dsthist, 0, &g_dhistmaxvalue, 0, 0);
+    for (int i = 0;i < 256;i++) {
+        //这里的dsthist.at<float>(i)就是每个bins对应的纵轴的高度
+        int value = cvRound(256 * 0.9 *(dsthist.at<float>(i) / g_dhistmaxvalue));
+        line(b_drawImage, Point(i, b_drawImage.rows - 1), Point(i, b_drawImage.rows - 1 - value), Scalar(255, 0, 0));
+    }
+    //        imshow("B通道直方图", b_drawImage);
 
-        channels = 1;
-        calcHist(&srcimage, 1, &channels, Mat(), dsthist, 1, histsize, ranges, true, false);
-        Mat g_drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
-        for (int i = 0;i < 256;i++) {
-            int value = cvRound(256 * 0.9 *(dsthist.at<float>(i) / g_dhistmaxvalue));
-            line(g_drawImage, Point(i, g_drawImage.rows - 1), Point(i, g_drawImage.rows - 1 - value), Scalar(0, 255, 0));
-        }
-//        imshow("G通道直方图", g_drawImage);
+    channels = 1;
+    calcHist(&srcimage, 1, &channels, Mat(), dsthist, 1, histsize, ranges, true, false);
+    Mat g_drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
+    for (int i = 0;i < 256;i++) {
+        int value = cvRound(256 * 0.9 *(dsthist.at<float>(i) / g_dhistmaxvalue));
+        line(g_drawImage, Point(i, g_drawImage.rows - 1), Point(i, g_drawImage.rows - 1 - value), Scalar(0, 255, 0));
+    }
+    //        imshow("G通道直方图", g_drawImage);
 
-        channels = 2;
-        calcHist(&srcimage, 1, &channels, Mat(), dsthist, 1, histsize, ranges, true, false);
-        Mat r_drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
-        for (int i = 0;i < 256;i++) {
-            int value = cvRound(256 * 0.9 *(dsthist.at<float>(i) / g_dhistmaxvalue));
-            line(r_drawImage, Point(i, r_drawImage.rows - 1), Point(i, r_drawImage.rows - 1 - value), Scalar(0, 0, 255));
-        }
-        Mat res1, res2;
-//        imshow("R通道直方图", r_drawImage);
-        add(b_drawImage, g_drawImage, res1);   //将三个直方图叠在一块
-        add(res1, r_drawImage, res2);
-//        imshow("RGB直方图", b_drawImage);
-//        imshow("RGB直方图", g_drawImage);
-//        imshow("RGB直方图", r_drawImage);
+    channels = 2;
+    calcHist(&srcimage, 1, &channels, Mat(), dsthist, 1, histsize, ranges, true, false);
+    Mat r_drawImage = Mat::zeros(Size(256, 256), CV_8UC3);
+    for (int i = 0;i < 256;i++) {
+        int value = cvRound(256 * 0.9 *(dsthist.at<float>(i) / g_dhistmaxvalue));
+        line(r_drawImage, Point(i, r_drawImage.rows - 1), Point(i, r_drawImage.rows - 1 - value), Scalar(0, 0, 255));
+    }
+    Mat res1, res2;
+    //        imshow("R通道直方图", r_drawImage);
+    add(b_drawImage, g_drawImage, res1);   //将三个直方图叠在一块
+    add(res1, r_drawImage, res2);
+    //        imshow("RGB直方图", b_drawImage);
+    //        imshow("RGB直方图", g_drawImage);
+    //        imshow("RGB直方图", r_drawImage);
 
-//        Mat m[3];
-//        m[0] = b_drawImage;
-//        m[1]=  g_drawImage;
-//        m[2]=  r_drawImage;
+    //        Mat m[3];
+    //        m[0] = b_drawImage;
+    //        m[1]=  g_drawImage;
+    //        m[2]=  r_drawImage;
 
-//        cv::merge(m, 3, res);
+    //        cv::merge(m, 3, res);
 
-//        imshow("RGB直方图", res2);
+    //        imshow("RGB直方图", res2);
 
-//        waitKey(100);
-//        imwrite("/Users/chenziwei/Downloads/RGB直方图.png", res);
-        //读取本地的一张图片
+    //        waitKey(100);
+    //        imwrite("/Users/chenziwei/Downloads/RGB直方图.png", res);
+    //读取本地的一张图片
 
 
     QImage i(res2.data, res2.cols, res2.rows, res2.step, QImage::Format_RGB888);
@@ -663,7 +696,7 @@ void MainWindow::on_pushButton_sharpen_clicked()
     image = ImageCenter(image, ui->label_imgshow);
 
     ui->label_imgshow->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
-
+    getRGBHistogram();
 //    imshow("锐化", res);
 //    cv::waitKey(1000);
 //    ui->label_imgshow->setPixmap(QPixmap::fromImage(image));
@@ -789,23 +822,38 @@ void MainWindow::on_pushButton_gaussianBlur_clicked()
 
 //    ui->label_imgshow->setPixmap(QPixmap::fromImage(image));
     ui->label_imgshow->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
+    getRGBHistogram();
 }
 
 //目标识别 物体检测
 void MainWindow::on_pushButton_objectDetection_clicked()
 {
 
-
 //    string imgpath = "/Users/chenziwei/摄影/2021.2.9微电影/IMG_6343.JPG";
-    Mat srcimg = imread(origin_path.toStdString());
+//    Mat srcimg = imread(origin_path.toStdString());
+//    Mat srcimg(QImage2cvMat(cur_img));
+    cur_img.save("./tmp_pic.png");
+    Mat srcimg = imread("./tmp_pic.png");
+
+    Mat img = imread(origin_path.toStdString());
+    if (srcimg.data == img.data) {
+        qDebug()<<"same";
+        return;
+    }
+
+    if(srcimg.cols > 1000 || srcimg.rows>1000)
+        qDebug()<<"too big";
+
+
     yolo_model->detect(srcimg);
-
-    static const string kWinName = "Deep learning object detection in OpenCV";
-
+//    static const string kWinName = "Deep learning object detection in OpenCV";
 //    imwrite("/Users/chenziwei/Downloads/srcimg.jpg", srcimg);
-    imshow("nice", srcimg);
-    waitKey(0);
-    destroyAllWindows();
+//    imshow("nice", srcimg);
+//    waitKey(0);
+//    destroyAllWindows();
+    QImage t = cvMat2QImage(srcimg);
+    t = ImageCenter(t, ui->label_imgshow);
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(t));
 
 }
 
@@ -931,7 +979,7 @@ void MainWindow::on_pushButton_erode_clicked()
 cv::Mat MainWindow::QImage2cvMat(QImage image)
 {
     cv::Mat mat;
-    qDebug() << image.format();
+//    qDebug() << image.format();
     switch(image.format())
     {
     case QImage::Format_ARGB32:
@@ -948,4 +996,142 @@ cv::Mat MainWindow::QImage2cvMat(QImage image)
         break;
     }
     return mat;
+}
+QImage MainWindow::cvMat2QImage(const cv::Mat& mat)
+{
+    // 8-bits unsigned, NO. OF CHANNELS = 1
+    if(mat.type() == CV_8UC1)
+    {
+        QImage image(mat.cols, mat.rows, QImage::Format_Indexed8);
+        // Set the color table (used to translate colour indexes to qRgb values)
+        image.setColorCount(256);
+        for(int i = 0; i < 256; i++)
+        {
+            image.setColor(i, qRgb(i, i, i));
+        }
+        // Copy input Mat
+        uchar *pSrc = mat.data;
+        for(int row = 0; row < mat.rows; row ++)
+        {
+            uchar *pDest = image.scanLine(row);
+            memcpy(pDest, pSrc, mat.cols);
+            pSrc += mat.step;
+        }
+        return image;
+    }
+    // 8-bits unsigned, NO. OF CHANNELS = 3
+    else if(mat.type() == CV_8UC3)
+    {
+        // Copy input Mat
+        const uchar *pSrc = (const uchar*)mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
+        return image.rgbSwapped();
+    }
+    else if(mat.type() == CV_8UC4)
+    {
+        qDebug() << "CV_8UC4";
+        // Copy input Mat
+        const uchar *pSrc = (const uchar*)mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_ARGB32);
+        return image.copy();
+    }
+    else
+    {
+        qDebug() << "ERROR: Mat could not be converted to QImage.";
+        return QImage();
+    }
+}
+
+
+void MainWindow::on_pushButton_renew_clicked()
+{
+    const QPixmap *current_img = ui->label_imgshow->pixmap();
+    current_img->save("/tmp/a.png");
+    cur_img = QImage("/tmp/a.png");
+}
+
+void MainWindow::on_action_save_triggered()
+{
+    if(ui->label_imgshow->pixmap()!=nullptr){
+        QString filename = QFileDialog::getSaveFileName(this,
+        tr("保存图片"),
+        "/Users/chenziwei/Downloads/ImgPro_images.png",
+        tr("*.png;; *.jpg;; *.bmp;; *.tif;; *.GIF")); //选择路径
+        if (filename.isEmpty()) {
+            return;
+        }
+        else {
+            if (!(ui->label_imgshow->pixmap()->toImage().save(filename))) //保存图像
+            {
+                QMessageBox::information(this,
+                    tr("图片保存成功！"),
+                    tr("图片保存失败！"));
+                return;
+            }
+//        ui->statusBar->showMessage("图片保存成功！");
+        }
+
+    }
+    else {
+    QMessageBox::warning(nullptr, "提示", "请先打开图片！", QMessageBox::Yes |  QMessageBox::Yes);
+    }
+}
+
+
+
+void MainWindow::on_pushButton_histEqualization_clicked()
+{
+    Mat gray_img, res;
+    cvtColor(QImage2cvMat(cur_img), gray_img, CV_RGB2GRAY);
+    equalizeHist(gray_img, res);
+    QImage q(cvMat2QImage(res));
+    q = ImageCenter(q, ui->label_imgshow);
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(q));
+    getGrayHistogram(res);
+}
+
+
+void MainWindow::PyrDownTest(){
+    Mat src,dest1,dest2;
+    src = imread(origin_path.toStdString());
+    if(!src.data){
+        cout << "图像打开失败！" << endl;
+        return ;
+    }
+    namedWindow("原图");
+    imshow("原图",src);
+    waitKey(0);
+    //降采样
+    pyrDown(src,dest1,Size(src.cols/2,src.rows/2));
+    pyrDown(dest1,dest2,Size(dest1.cols/2,dest1.rows/2));
+    namedWindow("降采样后1");
+    imshow("降采样后1",dest1);
+    waitKey(0);
+    namedWindow("降采样后2");
+    imshow("降采样后2",dest2);
+    waitKey(0);
+    destroyAllWindows();
+}
+
+
+void MainWindow::on_pushButton_downSampling_clicked()
+{
+    Mat src,res;
+//    src = imread(origin_path.toStdString());
+    src = QImage2cvMat(cur_img);
+    if(!src.data){
+        cout << "图像打开失败！" << endl;
+        return ;
+    }
+    pyrDown(src,res,Size(src.cols/2,src.rows/2));
+    QImage q(cvMat2QImage(res));
+    q = ImageCenter(q, ui->label_imgshow);
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(q));
+}
+
+void MainWindow::on_action_renew_triggered()
+{
+    on_pushButton_renew_clicked();
 }
