@@ -9,12 +9,15 @@
 #include <vector>
 #include <QMessageBox>
 #include <QtMath>
+#include<QDebug>
+
 #include<iostream>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include<opencv2/imgproc/types_c.h>     //使用类型CV_BGR2RGB所需声明
 
 
 

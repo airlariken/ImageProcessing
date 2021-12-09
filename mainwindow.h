@@ -15,13 +15,14 @@
 //#include <opencv2/highgui/highgui.hpp>
 //#include <opencv2/imgproc/imgproc.hpp>
 //#include "opencv2/imgcodecs.hpp"
-#include<opencv2/imgproc/types_c.h>     //CV_BGR2RGB
+
 
 #include "Header.h"
 #include "yolo.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include<QDebug>
+
+#include "imageproceealgo.h"
 #define EPS 1e-7
 
 using namespace std;
@@ -38,30 +39,20 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
-    QImage ImageCenter(QImage  qimage,QLabel *qLabel);//调整图片比例
+    QImage ImageCenter(QImage  qimage,QLabel *qLabel);//调整图片比例适应qlabel
 private slots:
-//    void on_actionopenFile_triggered();
 
     void on_action_openFile_triggered();
 
     void on_pushButton_toGray_clicked();
 
 
-    QImage meanFilterAlgo(QImage image);
-    QImage gray(QImage image);//灰度化
-    QImage edgeDetection(QImage image);
-    QImage gammaTransferALgo(QImage image);
-    QImage adjustContrastAlgo(QImage Img, int iContrastValue);
-    QImage adjustSaturationAlgo(QImage Img, int iSaturateValue);
-
     //处理上下溢出情况
     inline void overflowCheck(int &cor_val) {
         cor_val = (cor_val < 0x00) ? 0x00 : (cor_val > 0xff) ? 0xff : cor_val;
     }
-//    QImage gray2(QImage image);//灰度化2
 
-    //opencv函数
+    //调用了opencv数据结构或cv函数依赖
     void getGrayHistogram(Mat& img);
     int getRGBHistogram();
     Mat sharpen(const Mat &img, Mat &result);    //锐化算子
@@ -70,7 +61,7 @@ private slots:
     //Mat 与QImage转换
     cv::Mat QImage2cvMat(QImage image);
     QImage cvMat2QImage(const cv::Mat& mat);
-    void PyrDownTest();
+
     void on_pushButton_meanFilter_clicked();
 
     void on_pushButton_originalImg_clicked();
@@ -105,7 +96,6 @@ private slots:
 
     void on_pushButton_erode_clicked();
 
-
     void on_pushButton_renew_clicked();
 
     void on_action_save_triggered();
@@ -116,8 +106,15 @@ private slots:
 
     void on_action_renew_triggered();
 
+    void on_pushButton_blue_clicked();
+
+    void on_pushButton_red_clicked();
+
+    void on_pushButton_4_clicked();
+
 private:
     YOLO *yolo_model;
+//    ImageProceeAlgo algo;
     Ui::MainWindow *ui;
     QString origin_path;//目前处理的图片的原图
     int explosure_value;

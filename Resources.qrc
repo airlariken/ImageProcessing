@@ -10,6 +10,7 @@
         <file>Image/旋转.png</file>
         <file>Image/保存.png</file>
         <file>Image/更新.png</file>
+        <file>Image/图片.png</file>
     </qresource>
     <qresource prefix="/yolo">
         <file>coco.name</file>

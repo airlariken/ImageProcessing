@@ -6,9 +6,12 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    origin_path = "/Users/chenziwei/Downloads/第二问理想抛物面.jpg";
-    origin_path ="/Users/chenziwei/Downloads/中国地质大学.jpeg";
+//    origin_path = "/Users/chenziwei/Downloads/第二问理想抛物面.jpg";
+    origin_path ="/Users/chenziwei/Downloads/中国地质大学.png";
 
+//    QImage rota(":/iconImg/Image/旋转.png");
+//    ImageCenter(rota, ui->label_rotation);
+//    ui->label_rotation->setPixmap(QPixmap::fromImage(rota));
     cur_img = QImage(origin_path);
     ui->toolBar->setIconSize(QSize(25,25));//设置toolbar内icon大小，默认太大了太丑了
     //slider和spinbox联动，非常妙
@@ -100,7 +103,7 @@ QImage MainWindow::ImageCenter(QImage  qimage,QLabel *qwidget)
 
 void MainWindow::on_action_openFile_triggered()
 {
-    QStringList srcDirPathListS = QFileDialog::getOpenFileNames(this, tr("选择图片"), "E:/Qt/qtworks/MainWindow/images", tr("图像文件(*.jpg *.png *.bmp)"));
+    QStringList srcDirPathListS = QFileDialog::getOpenFileNames(this, tr("选择图片"), "/Users/chenziwei/Downloads", tr("图像文件(*.jpg *.png *.bmp *.jpeg)"));
 
 //    srcDirPathList =srcDirPathListS;
 //    srcDirPathListS.clear();
@@ -110,6 +113,7 @@ void MainWindow::on_action_openFile_triggered()
     QString srcDirPath = srcDirPathListS.at(0);
     origin_path = srcDirPath;
     QImage image(srcDirPath);
+    cur_img = image;
     QImage Image = ImageCenter(image, ui->label_imgshow);
     ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
     ui->label_imgshow->setAlignment(Qt::AlignCenter);
@@ -136,7 +140,7 @@ void MainWindow::on_pushButton_toGray_clicked()
     if(origin_path!=nullptr) {
 //    QImage image(origin_path);
     QImage image(cur_img);
-    QImage images=gray(image);
+    QImage images=ImageProceeAlgo::gray(image);
     QImage Image=ImageCenter(images,ui->label_imgshow);
     ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
     ui->label_imgshow->setAlignment(Qt::AlignCenter);
@@ -148,57 +152,22 @@ void MainWindow::on_pushButton_toGray_clicked()
     }
 }
 
-//灰度化
-QImage MainWindow::gray(QImage image){
-    QImage newImage =image.convertToFormat(QImage::Format_ARGB32);
-    QColor oldColor;
 
-    // 算法核心：三通道均值，三色相同即为灰度图
-        for(int y = 0; y < newImage.height(); y++)
-        {
-            for(int x = 0; x < newImage.width(); x++)
-            {
-                oldColor = QColor(image.pixel(x,y));
-                int average = (oldColor.red() + oldColor.green() + oldColor.blue()) / 3;
-                newImage.setPixel(x, y, qRgb(average, average, average));
-            }
-        }
-        return newImage;
-}
 
-//均值滤波
-QImage MainWindow::meanFilterAlgo(QImage image){
-    int kernel [3][3] = {
-        {1,1,1},
-        {1,1,1},
-        {1,1,1}};
-    int sizeKernel = 3;
-    int sumKernel = 9;
-    QColor color;
-     for(int x = sizeKernel/2;x<image.width() - sizeKernel/2;x++)
-    {
-       for(int y= sizeKernel/2;y<image.height() - sizeKernel/2;y++)
-        {
-            int r = 0;
-            int g = 0;
-            int b = 0;
-            for(int i = -sizeKernel/2;i<=sizeKernel/2;i++)
-            {
-               for(int j = -sizeKernel/2;j<=sizeKernel/2;j++)
-                {
-                 color = QColor(image.pixel(x+i,y+j));
-                 r+=color.red()*kernel[sizeKernel/2+i][sizeKernel/2+j];
-                 g+=color.green()*kernel[sizeKernel/2+i][sizeKernel/2+j];
-                 b+=color.blue()*kernel[sizeKernel/2+i][sizeKernel/2+j];
-                }
-            }
-            r = qBound(0,r/sumKernel,255);
-            g = qBound(0,g/sumKernel,255);
-            b = qBound(0,b/sumKernel,255);
-            image.setPixel(x,y,qRgb( r,g,b));
-        }
+
+void MainWindow::on_pushButton_originalImg_clicked()
+{
+    if(origin_path!=nullptr) {
+        QImage image(origin_path);
+        image = ImageCenter(image, ui->label_imgshow);
+        ui->label_imgshow->setPixmap(QPixmap::fromImage(image));
+        ui->label_imgshow->setAlignment(Qt::AlignCenter);
+        cur_img = image;
     }
-    return image;
+    else{
+        QMessageBox::warning(nullptr, "提示", "请先选择一张图片！", QMessageBox::Yes |  QMessageBox::Yes);
+    }
+    getRGBHistogram();
 }
 
 
@@ -207,7 +176,7 @@ void MainWindow::on_pushButton_meanFilter_clicked()
     if(origin_path!=nullptr){
 //    QImage image(origin_path);
         QImage image(cur_img);
-        image=meanFilterAlgo(image);
+        image=ImageProceeAlgo::meanFilterAlgo(image);
         QImage Image=ImageCenter(image,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
@@ -218,63 +187,6 @@ void MainWindow::on_pushButton_meanFilter_clicked()
     getRGBHistogram();
 }
 
-void MainWindow::on_pushButton_originalImg_clicked()
-{
-    if(origin_path!=nullptr) {
-        QImage image(origin_path);
-        image = ImageCenter(image, ui->label_imgshow);
-        ui->label_imgshow->setPixmap(QPixmap::fromImage(image));
-        ui->label_imgshow->setAlignment(Qt::AlignCenter);
-    }
-    else{
-        QMessageBox::warning(nullptr, "提示", "请先选择一张图片！", QMessageBox::Yes |  QMessageBox::Yes);
-    }
-    getRGBHistogram();
-}
-
-
-//边缘检测
-QImage MainWindow::edgeDetection(QImage image){
-    QImage newImage =image.convertToFormat(QImage::Format_ARGB32);
-    QColor color0;
-    QColor color1;
-    QColor color2;
-    QColor color3;
-    int  r = 0;
-    int g = 0;
-    int b = 0;
-    int rgb = 0;
-    int r1 = 0;
-    int g1 = 0;
-    int b1 = 0;
-    int rgb1 = 0;
-    int a = 0;
-    for( int y = 0; y < image.height() - 1; y++)
-    {
-        for(int x = 0; x < image.width() - 1; x++)
-        {
-            color0 =   QColor (image.pixel(x,y));
-            color1 =   QColor (image.pixel(x + 1,y));
-            color2 =   QColor (image.pixel(x,y + 1));
-            color3 =   QColor (image.pixel(x + 1,y + 1));
-            r = abs(color0.red() - color3.red());
-            g = abs(color0.green() - color3.green());
-            b = abs(color0.blue() - color3.blue());
-            rgb = r + g + b;
-
-            r1 = abs(color1.red() - color2.red());
-            g1= abs(color1.green() - color2.green());
-            b1 = abs(color1.blue() - color2.blue());
-            rgb1 = r1 + g1 + b1;
-
-            a = rgb + rgb1;
-            a = a>255?255:a;
-
-            newImage.setPixel(x,y,qRgb(a,a,a));
-        }
-    }
-    return newImage;
-}
 
 
 void MainWindow::on_pushButton_edgeDetection_clicked()
@@ -282,7 +194,7 @@ void MainWindow::on_pushButton_edgeDetection_clicked()
     if(origin_path!=nullptr){
 //    QImage image(origin_path);
     QImage image(cur_img);
-    QImage newImage =edgeDetection(image);
+    QImage newImage = ImageProceeAlgo::edgeDetection(image);
     QImage Image=ImageCenter(newImage,ui->label_imgshow);
     ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
     ui->label_imgshow->setAlignment(Qt::AlignCenter);
@@ -293,31 +205,11 @@ void MainWindow::on_pushButton_edgeDetection_clicked()
 }
 
 
-QImage MainWindow::gammaTransferALgo(QImage image){
-    double d=1.2;
-    QColor color;
-    int height = image.height();
-    int width = image.width();
-    for (int i=0;i<width;i++){
-        for(int j=0;j<height;j++){
-            color = QColor(image.pixel(i,j));
-            double r = color.red();
-            double g = color.green();
-            double b = color.blue();
-            int R = qBound(0,(int)qPow(r,d),255);
-            int G = qBound(0,(int)qPow(g,d),255);
-            int B = qBound(0,(int)qPow(b,d),255);
-            image.setPixel(i,j,qRgb(R,G,B));
-        }
-    }
-    return image;
-}
-
 void MainWindow::on_pushButton_gammaTransfer_clicked()
 {
     if(origin_path!=nullptr){
         QImage image(cur_img);
-        image=gammaTransferALgo(image);
+        image=ImageProceeAlgo::gammaTransferALgo(image);
         QImage Image=ImageCenter(image,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
@@ -393,53 +285,7 @@ void MainWindow::on_spinBox_exposure_valueChanged(int arg1)
 //        flag = 0;
 }
 
-QImage MainWindow::adjustContrastAlgo(QImage Img, int iContrastValue)
-{
-    int pixels = Img.width() * Img.height();
-    unsigned int *data = (unsigned int *)Img.bits();
 
-    int red, green, blue, nRed, nGreen, nBlue;
-
-    if (iContrastValue > 0 && iContrastValue < 100)
-    {
-        float param = 1 / (1 - iContrastValue / 100.0) - 1;
-
-        for (int i = 0; i < pixels; ++i)
-        {
-            nRed = qRed(data[i]);
-            nGreen = qGreen(data[i]);
-            nBlue = qBlue(data[i]);
-
-            red = nRed + (nRed - 127) * param;
-            red = (red < 0x00) ? 0x00 : (red > 0xff) ? 0xff : red;
-            green = nGreen + (nGreen - 127) * param;
-            green = (green < 0x00) ? 0x00 : (green > 0xff) ? 0xff : green;
-            blue = nBlue + (nBlue - 127) * param;
-            blue = (blue < 0x00) ? 0x00 : (blue > 0xff) ? 0xff : blue;
-
-            data[i] = qRgba(red, green, blue, qAlpha(data[i]));
-        }
-    }
-    else
-    {
-        for (int i = 0; i < pixels; ++i)
-        {
-            nRed = qRed(data[i]);
-            nGreen = qGreen(data[i]);
-            nBlue = qBlue(data[i]);
-
-            red = nRed + (nRed - 127) * iContrastValue / 100.0;
-            red = (red < 0x00) ? 0x00 : (red > 0xff) ? 0xff : red;
-            green = nGreen + (nGreen - 127) * iContrastValue / 100.0;
-            green = (green < 0x00) ? 0x00 : (green > 0xff) ? 0xff : green;
-            blue = nBlue + (nBlue - 127) * iContrastValue / 100.0;
-            blue = (blue < 0x00) ? 0x00 : (blue > 0xff) ? 0xff : blue;
-
-            data[i] = qRgba(red, green, blue, qAlpha(data[i]));
-        }
-    }
-    return Img;
-}
 
 void MainWindow::on_horizontalSlider_contrast_valueChanged(int value)
 {
@@ -449,7 +295,7 @@ void MainWindow::on_horizontalSlider_contrast_valueChanged(int value)
         QImage image(cur_img);
 //        int off_set = value - ori_val;
 //        ori_val = value;
-        QImage adj_img = adjustContrastAlgo(image, value);
+        QImage adj_img = ImageProceeAlgo::adjustContrastAlgo(image, value);
         QImage Image=ImageCenter(adj_img,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
@@ -457,58 +303,6 @@ void MainWindow::on_horizontalSlider_contrast_valueChanged(int value)
         getRGBHistogram();
     }
 
-}
-QImage MainWindow::adjustSaturationAlgo(QImage Img, int iSaturateValue)
-{
-    int red, green, blue, nRed, nGreen, nBlue;
-    int pixels = Img.width() * Img.height();
-    unsigned int *data = (unsigned int *)Img.bits();
-
-    float Increment = iSaturateValue/100.0;
-
-    float delta = 0;
-    float minVal, maxVal;
-    float L, S;
-    float alpha;
-
-    for (int i = 0; i < pixels; ++i)
-    {
-        nRed = qRed(data[i]);
-        nGreen = qGreen(data[i]);
-        nBlue = qBlue(data[i]);
-
-        minVal = std::min(std::min(nRed, nGreen), nBlue);
-        maxVal = std::max(std::max(nRed, nGreen), nBlue);
-        delta = (maxVal - minVal) / 255.0;
-        L = 0.5*(maxVal + minVal) / 255.0;
-        S = std::max(0.5*delta / L, 0.5*delta / (1 - L));
-
-        if (Increment > 0)
-        {
-            alpha = std::max(S, 1 - Increment);
-            alpha = 1.0 / alpha - 1;
-            red = nRed + (nRed - L*255.0)*alpha;
-            red = (red < 0x00) ? 0x00 : (red > 0xff) ? 0xff : red;
-            green = nGreen + (nGreen - L*255.0)*alpha;
-            green = (green < 0x00) ? 0x00 : (green > 0xff) ? 0xff : green;
-            blue = nBlue + (nBlue - L*255.0)*alpha;
-            blue = (blue < 0x00) ? 0x00 : (blue > 0xff) ? 0xff : blue;
-        }
-        else
-        {
-            alpha = Increment;
-            red = L*255.0 + (nRed - L * 255.0)*(1+alpha);
-            red = (red < 0x00) ? 0x00 : (red > 0xff) ? 0xff : red;
-            green = L*255.0 + (nGreen - L * 255.0)*(1+alpha);
-            green = (green < 0x00) ? 0x00 : (green > 0xff) ? 0xff : green;
-            blue = L*255.0 + (nBlue - L * 255.0)*(1+alpha);
-            blue = (blue < 0x00) ? 0x00 : (blue > 0xff) ? 0xff : blue;
-        }
-
-        data[i] = qRgba(red, green, blue, qAlpha(data[i]));
-    }
-
-    return Img;
 }
 
 void MainWindow::on_horizontalSlider_saturation_valueChanged(int value)
@@ -519,7 +313,7 @@ void MainWindow::on_horizontalSlider_saturation_valueChanged(int value)
         QImage image(cur_img);
 //        int off_set = value - ori_val;
 //        ori_val = value;
-        QImage adj_img = adjustSaturationAlgo(image, value);
+        QImage adj_img = ImageProceeAlgo::adjustSaturationAlgo(image, value);
         QImage Image=ImageCenter(adj_img,ui->label_imgshow);
         ui->label_imgshow->setPixmap(QPixmap::fromImage(Image));
         ui->label_imgshow->setAlignment(Qt::AlignCenter);
@@ -687,15 +481,18 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_pushButton_sharpen_clicked()
 {
     //读取本地的一张图片
-    Mat srcimage = imread(origin_path.toStdString());
+//    Mat srcimage = imread(origin_path.toStdString());
+    Mat srcimage = QImage2cvMat(cur_img);
     Mat res;
     res = sharpen(srcimage, res);
 
 
-    QImage image(res.data, res.cols, res.rows, res.step, QImage::Format_RGB888);
+
+
+    QImage image(cvMat2QImage(res));
     image = ImageCenter(image, ui->label_imgshow);
 
-    ui->label_imgshow->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(image));
     getRGBHistogram();
 //    imshow("锐化", res);
 //    cv::waitKey(1000);
@@ -1093,27 +890,7 @@ void MainWindow::on_pushButton_histEqualization_clicked()
 }
 
 
-void MainWindow::PyrDownTest(){
-    Mat src,dest1,dest2;
-    src = imread(origin_path.toStdString());
-    if(!src.data){
-        cout << "图像打开失败！" << endl;
-        return ;
-    }
-    namedWindow("原图");
-    imshow("原图",src);
-    waitKey(0);
-    //降采样
-    pyrDown(src,dest1,Size(src.cols/2,src.rows/2));
-    pyrDown(dest1,dest2,Size(dest1.cols/2,dest1.rows/2));
-    namedWindow("降采样后1");
-    imshow("降采样后1",dest1);
-    waitKey(0);
-    namedWindow("降采样后2");
-    imshow("降采样后2",dest2);
-    waitKey(0);
-    destroyAllWindows();
-}
+
 
 
 void MainWindow::on_pushButton_downSampling_clicked()
@@ -1134,4 +911,100 @@ void MainWindow::on_pushButton_downSampling_clicked()
 void MainWindow::on_action_renew_triggered()
 {
     on_pushButton_renew_clicked();
+}
+
+void MainWindow::on_pushButton_blue_clicked()
+{
+    unsigned char *blueData;                                // 定义字符型指针数组blueData用于存储蓝色分量数据
+    QImage img(cur_img);                                      // 加载当前图像
+    img = img.convertToFormat(QImage::Format_RGB888);
+    unsigned char *data = img.bits ();                      // 指向当前图像第一个像素
+    int width = img.width();                               // 图像宽度
+    int height = img.height();                             // 图像高度
+    int bytePerLine = img.bytesPerLine();                   // 图像每行字节数
+    blueData = new unsigned char [bytePerLine * height];    // 设置数组大小
+    unsigned char blue = 0;                                 // 蓝色分量
+    for (int i = 0; i < height; i++)                        // 遍历每一行
+    {
+        for ( int j = 0; j < width; j++ )                   // 遍历每一列
+        {
+            blue = *(data);                                 // 获取当前像素点蓝色分量
+            blueData[i * bytePerLine + j * 3] = 0;
+            blueData[i * bytePerLine + j * 3+1]=0;
+            blueData[i * bytePerLine + j * 3+2]=blue;       // 蓝色通道赋原值
+            data += 3;                                      // 更新至下一像素点
+        }
+    }
+
+    QImage blueImage(blueData,width,height,bytePerLine,QImage::Format_RGB888);
+    blueImage = ImageCenter(blueImage, ui->label_imgshow);
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(blueImage));
+//    imgLabel->setPixmap (pixmap2);                          // 显示灰度图像
+//    qDebug() << "提取蓝色分量";
+    blueImage = ImageProceeAlgo::gray(blueImage);
+    Mat m = QImage2cvMat(blueImage);
+    getGrayHistogram(m);
+}
+
+void MainWindow::on_pushButton_red_clicked()
+{
+    unsigned char *redData;                                // 定义字符型指针数组blueData用于存储蓝色分量数据
+    QImage img(cur_img);                                      // 加载当前图像
+    img = img.convertToFormat(QImage::Format_RGB888);
+    unsigned char *data = img.bits();                      // 指向当前图像第一个像素
+    int width = img.width();                               // 图像宽度
+    int height = img.height();                             // 图像高度
+    int bytePerLine = img.bytesPerLine();                   // 图像每行字节数
+    redData = new unsigned char [bytePerLine * height];    // 设置数组大小
+    unsigned char red = 0;                                 // 蓝色分量
+    for (int i = 0; i < height; i++)                        // 遍历每一行
+    {
+        for ( int j = 0; j < width; j++ )                   // 遍历每一列
+        {
+            red = *(data+2);                                 // 获取当前像素点蓝色分量
+            redData[i * bytePerLine + j * 3] = red;
+            redData[i * bytePerLine + j * 3+1]= 0;
+            redData[i * bytePerLine + j * 3+2]= 0;
+            data += 3;                                      // 更新至下一像素点，分别是RBGA
+        }
+    }
+    QImage redImage(redData,width,height,bytePerLine,QImage::Format_RGB888);
+    redImage = ImageCenter(redImage, ui->label_imgshow);
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(redImage));
+//    imgLabel->setPixmap (pixmap2);                          // 显示灰度图像
+//    qDebug() << "提取蓝色分量";
+    redImage = ImageProceeAlgo::gray(redImage);
+    Mat m = QImage2cvMat(redImage);
+    getGrayHistogram(m);
+}
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    unsigned char *greData;                                // 定义字符型指针数组blueData用于存储蓝色分量数据
+    QImage img(cur_img);                                      // 加载当前图像
+    img = img.convertToFormat(QImage::Format_RGB888);
+    unsigned char *data = img.bits ();                      // 指向当前图像第一个像素
+    int width = img.width();                               // 图像宽度
+    int height = img.height();                             // 图像高度
+    int bytePerLine = img.bytesPerLine();                   // 图像每行字节数
+    greData = new unsigned char [bytePerLine * height];    // 设置数组大小
+    unsigned char gre = 0;                                 // 蓝色分量
+    for (int i = 0; i < height; i++)                        // 遍历每一行
+    {
+        for ( int j = 0; j < width; j++ )                   // 遍历每一列
+        {
+            gre = *(data+1);                                 // 获取当前像素点蓝色分量
+            greData[i * bytePerLine + j * 3] = 0;
+            greData[i * bytePerLine + j * 3+1]= gre;
+            greData[i * bytePerLine + j * 3+2]= 0;
+            data += 3;                                      // 更新至下一像素点，分别是RBGA
+        }
+    }
+    QImage greImage(greData,width,height,bytePerLine,QImage::Format_RGB888);
+    greImage = ImageCenter(greImage, ui->label_imgshow);
+    ui->label_imgshow->setPixmap(QPixmap::fromImage(greImage));
+//    imgLabel->setPixmap (pixmap2);                          // 显示灰度图像
+    greImage = ImageProceeAlgo::gray(greImage);
+    Mat m = QImage2cvMat(greImage);
+    getGrayHistogram(m);
 }

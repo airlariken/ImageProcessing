@@ -20,7 +20,7 @@
       <item>
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -152,6 +152,27 @@
            <widget class="QPushButton" name="pushButton_gaussianBlur">
             <property name="text">
              <string>高斯模糊</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_blue">
+            <property name="text">
+             <string>蓝通道</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_red">
+            <property name="text">
+             <string>红通道</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_4">
+            <property name="text">
+             <string>绿通道</string>
             </property>
            </widget>
           </item>
@@ -313,6 +334,7 @@
    </attribute>
    <addaction name="action_openFile"/>
    <addaction name="action_save"/>
+   <addaction name="action_origin"/>
    <addaction name="action_renew"/>
    <addaction name="action_DockShow"/>
   </widget>
@@ -372,8 +394,8 @@
     <widget class="QSlider" name="horizontalSlider_rotate">
      <property name="geometry">
       <rect>
-       <x>130</x>
-       <y>340</y>
+       <x>80</x>
+       <y>330</y>
        <width>101</width>
        <height>27</height>
       </rect>
@@ -431,7 +453,7 @@ QSlider::handle:horizontal {
       </rect>
      </property>
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
     <widget class="QWidget" name="layoutWidget">
@@ -574,7 +596,7 @@ QSlider::handle:horizontal {
       <rect>
        <x>20</x>
        <y>200</y>
-       <width>31</width>
+       <width>60</width>
        <height>101</height>
       </rect>
      </property>
@@ -610,6 +632,19 @@ QSlider::handle:horizontal {
        </widget>
       </item>
      </layout>
+    </widget>
+    <widget class="QLabel" name="label_rotation">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>330</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>旋转</string>
+     </property>
     </widget>
    </widget>
   </widget>
@@ -650,6 +685,15 @@ QSlider::handle:horizontal {
    </property>
    <property name="text">
     <string>更新图片</string>
+   </property>
+  </action>
+  <action name="action_origin">
+   <property name="icon">
+    <iconset resource="Resources.qrc">
+     <normaloff>:/iconImg/Image/图片.png</normaloff>:/iconImg/Image/图片.png</iconset>
+   </property>
+   <property name="text">
+    <string>原图</string>
    </property>
   </action>
  </widget>
